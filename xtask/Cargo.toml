@@ -1,0 +1,9 @@
+[package]
+name = "xtask"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[dependencies]
+clap = { version = "4.0.29", features = ["derive"] }
+scriptant = { git = "https://github.com/MozkTaberenai/scriptant" }
