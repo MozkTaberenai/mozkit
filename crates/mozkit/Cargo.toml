@@ -3,6 +3,13 @@ name = "mozkit"
 version = "0.1.0"
 edition = "2021"
 rust-version = "1.65"
+authors = ["Mozk Taberenai <mozk@me.com>"]
+license = "MIT"
+description = ""
+repository = "https://github.com/MozkTaberenai/mozkit"
+homepage = "https://github.com/MozkTaberenai/mozkit"
+keywords = ["web", "wasm", "WebAssembly"]
+categories = ["wasm", "web-programming"]
 
 [dependencies]
 wasm-bindgen = "0.2.83"
