@@ -17,16 +17,6 @@ where
     })
 }
 
-// use super::JsValue;
-
-// fn spawn_log_jsvalue_err(f: impl Future<Output = Result<(), JsValue>> + 'static) {
-//     wasm_bindgen_futures::spawn_local(async move {
-//         if let Err(err) = f.await {
-//             error!("{err:?}");
-//         }
-//     })
-// }
-
 pub trait FutureSpawnExt: Future<Output = ()> + Sized + 'static {
     fn spawn(self) {
         spawn(self);
@@ -48,15 +38,3 @@ where
     E: std::error::Error,
 {
 }
-
-// pub trait FutureSpawnLogJsValueErrExt:
-//     Future<Output = Result<(), JsValue>> + Sized + 'static
-// {
-//     fn spawn(self) {
-//         spawn_log_jsvalue_err(self)
-//     }
-// }
-// impl<F> FutureSpawnLogJsValueErrExt for F where
-//     F: Future<Output = Result<(), JsValue>> + Sized + 'static
-// {
-// }
