@@ -29,8 +29,6 @@ pub use web_sys::SvgsvgElement;
 
 mod rt;
 pub use rt::*;
-// mod stream_ext;
-// pub use stream_ext::*;
 
 pub fn init_logger(level: log::Level) {
     console_error_panic_hook::set_once();
