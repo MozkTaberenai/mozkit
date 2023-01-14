@@ -41,8 +41,8 @@ pub use create::*;
 mod event;
 pub use event::*;
 
-mod as_;
-pub use as_::*;
+mod is_x;
+pub use is_x::*;
 
 mod event_target;
 pub use event_target::*;
