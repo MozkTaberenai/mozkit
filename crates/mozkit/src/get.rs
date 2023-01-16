@@ -4,14 +4,14 @@ mod init {
     use super::*;
 
     pub fn window() -> web_sys::Window {
-        web_sys::window().expect_throw("Should never fail: DOM runtime maybe broken.")
+        web_sys::window().expect_throw("should never fail: DOM runtime maybe broken.")
     }
 
     pub fn document() -> web_sys::Document {
         WINDOW.with(|window| {
             window
                 .document()
-                .expect_throw("Should never fail: DOM runtime maybe broken.")
+                .expect_throw("should never fail: DOM runtime maybe broken.")
         })
     }
 
@@ -19,7 +19,7 @@ mod init {
         WINDOW.with(|window| {
             window
                 .history()
-                .expect_throw("Should never fail: DOM runtime maybe broken.")
+                .expect_throw("should never fail: DOM runtime maybe broken.")
         })
     }
 
@@ -28,7 +28,7 @@ mod init {
             window
                 .local_storage()
                 .unwrap_js()
-                .expect_throw("Should never fail: DOM runtime maybe broken.")
+                .expect_throw("should never fail: DOM runtime maybe broken.")
         })
     }
 
@@ -37,7 +37,7 @@ mod init {
             window
                 .session_storage()
                 .unwrap_js()
-                .expect_throw("Should never fail: DOM runtime maybe broken.")
+                .expect_throw("should never fail: DOM runtime maybe broken.")
         })
     }
 
@@ -45,7 +45,7 @@ mod init {
         DOCUMENT.with(|document| {
             document
                 .document_element()
-                .expect_throw("Should never fail: DOM runtime maybe broken.")
+                .expect_throw("should never fail: DOM runtime maybe broken.")
         })
     }
 
@@ -53,7 +53,7 @@ mod init {
         DOCUMENT.with(|document| {
             document
                 .head()
-                .expect_throw("Should never fail: DOM runtime maybe broken.")
+                .expect_throw("should never fail: DOM runtime maybe broken.")
         })
     }
 
@@ -61,7 +61,7 @@ mod init {
         DOCUMENT.with(|document| {
             document
                 .body()
-                .expect_throw("Should never fail: DOM runtime maybe broken.")
+                .expect_throw("should never fail: DOM runtime maybe broken.")
         })
     }
 }

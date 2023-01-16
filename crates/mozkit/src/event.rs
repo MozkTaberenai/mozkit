@@ -59,7 +59,7 @@ impl<T: Clone> Event<T> {
         for (_, listener) in listeners {
             let inner = listener
                 .upgrade()
-                .expect_throw("Should successfuly upgraded");
+                .expect_throw("should successfuly upgraded");
 
             let EventStreamInner {
                 ref mut queue,
@@ -142,7 +142,7 @@ impl<T: Clone> Drop for Event<T> {
         for (_, listener) in &self.inner.borrow().listeners {
             let inner = listener
                 .upgrade()
-                .expect_throw("Should successfuly upgraded");
+                .expect_throw("should successfuly upgraded");
 
             let EventStreamInner { ref mut waker, .. } = *inner.borrow_mut();
 

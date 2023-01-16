@@ -121,7 +121,7 @@ impl Drop for SessionInner {
         for (_, watcher_inner) in &self.watchers {
             let watcher_inner = watcher_inner
                 .upgrade()
-                .expect_throw("Should successfuly upgraded");
+                .expect_throw("should successfuly upgraded");
 
             let SessionWatcherInner { ref mut waker } = *watcher_inner.borrow_mut();
 
