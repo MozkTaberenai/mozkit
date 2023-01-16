@@ -36,6 +36,7 @@ features = [
   "AddEventListenerOptions",
   "Node",
   "NodeList",
+  "HtmlCollection",
   "DocumentFragment",
   "Text",
   "Element",

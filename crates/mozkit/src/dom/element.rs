@@ -7,6 +7,7 @@ pub trait DomElementExt<T> {
     fn toggle_class(&self, class: &str) -> bool;
     fn set_attr(&self, name: &str, value: &str);
     fn remove(&self);
+    fn children(&self) -> Vec<Dom<Element>>;
     fn query_selector(&self, selector: &str) -> Vec<Dom<Node>>;
 }
 
@@ -40,12 +41,24 @@ impl<T: IsElement> DomElementExt<T> for Dom<T> {
     }
 
     #[track_caller]
+    fn children(&self) -> Vec<Dom<Element>> {
+        let collection = self.as_element().children();
+        let len = collection.length();
+        (0..len)
+            .map(|i| {
+                let child = collection.item(i).expect_throw("invalid index");
+                Dom::from(child)
+            })
+            .collect()
+    }
+
+    #[track_caller]
     fn query_selector(&self, selector: &str) -> Vec<Dom<Node>> {
         let node_list = self.as_element().query_selector_all(selector).unwrap_js();
         let len = node_list.length();
         (0..len)
             .map(|i| {
-                let node = node_list.item(i).expect_throw("Should not fail");
+                let node = node_list.item(i).expect_throw("invalid index");
                 Dom::from(node)
             })
             .collect()
