@@ -56,6 +56,14 @@ pub fn span() -> Dom<web_sys::HtmlElement> {
     unchecked_create_element("span")
 }
 
+pub fn i() -> Dom<web_sys::HtmlElement> {
+    unchecked_create_element("i")
+}
+
+pub fn a() -> Dom<web_sys::HtmlElement> {
+    unchecked_create_element("a")
+}
+
 pub fn ul() -> Dom<web_sys::HtmlElement> {
     unchecked_create_element("ul")
 }
@@ -68,12 +76,13 @@ pub fn li() -> Dom<web_sys::HtmlElement> {
     unchecked_create_element("li")
 }
 
-pub fn i() -> Dom<web_sys::HtmlElement> {
-    unchecked_create_element("i")
+#[cfg(feature = "html-input")]
+pub fn input() -> Dom<web_sys::HtmlInputElement> {
+    unchecked_create_element("input")
 }
-
-pub fn a() -> Dom<web_sys::HtmlElement> {
-    unchecked_create_element("a")
+#[cfg(not(feature = "html-input"))]
+pub fn input() -> Dom<web_sys::HtmlElement> {
+    unchecked_create_element("input")
 }
 
 #[cfg(feature = "html-button")]
@@ -85,13 +94,31 @@ pub fn button() -> Dom<web_sys::HtmlElement> {
     unchecked_create_element("button")
 }
 
-#[cfg(feature = "html-input")]
-pub fn input() -> Dom<web_sys::HtmlInputElement> {
-    unchecked_create_element("input")
+#[cfg(feature = "html-select")]
+pub fn select() -> Dom<web_sys::HtmlSelectElement> {
+    unchecked_create_element("select")
 }
-#[cfg(not(feature = "html-input"))]
-pub fn input() -> Dom<web_sys::HtmlElement> {
-    unchecked_create_element("input")
+#[cfg(not(feature = "html-select"))]
+pub fn select() -> Dom<web_sys::HtmlElement> {
+    unchecked_create_element("select")
+}
+
+#[cfg(feature = "html-select")]
+pub fn option() -> Dom<web_sys::HtmlOptionElement> {
+    unchecked_create_element("option")
+}
+#[cfg(not(feature = "html-select"))]
+pub fn option() -> Dom<web_sys::HtmlElement> {
+    unchecked_create_element("option")
+}
+
+#[cfg(feature = "html-select")]
+pub fn optgroup() -> Dom<web_sys::HtmlOptGroupElement> {
+    unchecked_create_element("optgroup")
+}
+#[cfg(not(feature = "html-select"))]
+pub fn optgroup() -> Dom<web_sys::HtmlElement> {
+    unchecked_create_element("optgroup")
 }
 
 #[cfg(feature = "html-dialog")]

@@ -57,6 +57,12 @@ features = [
 html-dialog = ["web-sys/HtmlDialogElement"]
 html-input = ["web-sys/HtmlInputElement"]
 html-button = ["web-sys/HtmlButtonElement"]
+html-select = [
+  "web-sys/HtmlSelectElement",
+  "web-sys/HtmlOptionsCollection",
+  "web-sys/HtmlOptionElement",
+  "web-sys/HtmlOptGroupElement",
+]
 html-link = ["web-sys/HtmlLinkElement"]
 html-style = ["web-sys/HtmlStyleElement"]
 html-div = ["web-sys/HtmlDivElement"]
