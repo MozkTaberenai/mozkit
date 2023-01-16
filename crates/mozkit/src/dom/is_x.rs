@@ -43,10 +43,16 @@ impl IsElement for web_sys::SvgElement {}
 
 #[cfg(feature = "html-input")]
 impl IsElement for web_sys::HtmlInputElement {}
-#[cfg(feature = "html-dialog")]
-impl IsElement for web_sys::HtmlDialogElement {}
 #[cfg(feature = "html-button")]
 impl IsElement for web_sys::HtmlButtonElement {}
+#[cfg(feature = "html-select")]
+impl IsElement for web_sys::HtmlSelectElement {}
+#[cfg(feature = "html-select")]
+impl IsElement for web_sys::HtmlOptionElement {}
+#[cfg(feature = "html-select")]
+impl IsElement for web_sys::HtmlOptGroupElement {}
+#[cfg(feature = "html-dialog")]
+impl IsElement for web_sys::HtmlDialogElement {}
 #[cfg(feature = "html-link")]
 impl IsElement for web_sys::HtmlLinkElement {}
 #[cfg(feature = "html-style")]
