@@ -8,6 +8,10 @@ pub fn style() -> Dom<web_sys::HtmlElement> {
     unchecked_create_element("style")
 }
 
+pub fn script() -> Dom<web_sys::HtmlElement> {
+    unchecked_create_element("script")
+}
+
 pub fn main() -> Dom<web_sys::HtmlElement> {
     unchecked_create_element("main")
 }
