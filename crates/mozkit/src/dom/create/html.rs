@@ -64,6 +64,14 @@ pub fn i() -> Dom<web_sys::HtmlElement> {
     unchecked_create_element("i")
 }
 
+pub fn ins() -> Dom<web_sys::HtmlElement> {
+    unchecked_create_element("ins")
+}
+
+pub fn del() -> Dom<web_sys::HtmlElement> {
+    unchecked_create_element("del")
+}
+
 pub fn a() -> Dom<web_sys::HtmlElement> {
     unchecked_create_element("a")
 }
