@@ -38,9 +38,9 @@ impl<T> UnwrapJsExt<T> for Result<T, JsValue> {
     fn unwrap_js(self) -> T {
         match self {
             Ok(value) => value,
-            Err(e) => match e.dyn_ref::<js_sys::Error>() {
-                Some(e) => panic!("{}", e.message()),
-                None => panic!("{:?}", e),
+            Err(js_value) => match js_value.dyn_ref::<js_sys::Error>() {
+                Some(js_error) => panic!("{}", js_error.message()),
+                None => panic!("{js_value:?}"),
             },
         }
     }
