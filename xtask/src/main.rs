@@ -15,7 +15,7 @@ enum Action {
 }
 
 impl Action {
-    fn run(self) -> Result<()> {
+    fn run(self) -> Result<(), AnyError> {
         match self {
             Action::Fmt => {
                 cmd!("cargo", "fmt").run()?;
@@ -36,7 +36,8 @@ impl Action {
                 "--target",
                 "wasm32-unknown-unknown"
             )
-            .run(),
+            .run()
+            .map_err(Into::into),
         }
     }
 }
