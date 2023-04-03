@@ -46,7 +46,7 @@ use std::process::ExitCode;
 
 fn main() -> ExitCode {
     if let Err(err) = Args::parse().action.run() {
-        echo_err!(err);
+        echo!("err", err.red());
         return ExitCode::from(1);
     }
     ExitCode::SUCCESS
