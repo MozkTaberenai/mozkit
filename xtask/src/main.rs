@@ -1,13 +1,7 @@
 use clap::Parser;
 use scriptant::*;
 
-#[derive(clap::Parser)]
-struct Args {
-    #[command(subcommand)]
-    action: Action,
-}
-
-#[derive(clap::Subcommand)]
+#[derive(Parser)]
 enum Action {
     Fmt,
     Check,
@@ -42,12 +36,6 @@ impl Action {
     }
 }
 
-use std::process::ExitCode;
-
-fn main() -> ExitCode {
-    if let Err(err) = Args::parse().action.run() {
-        echo!("err", err.red());
-        return ExitCode::from(1);
-    }
-    ExitCode::SUCCESS
+fn main() -> Result<(), AnyError> {
+    Action::parse().run()
 }
