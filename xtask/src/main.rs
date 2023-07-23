@@ -2,40 +2,42 @@ use clap::Parser;
 use scriptant::*;
 
 #[derive(Parser)]
-enum Action {
+enum Command {
     Fmt,
     Check,
     Test,
 }
 
-impl Action {
+impl Command {
     fn run(self) -> Result<(), AnyError> {
         match self {
-            Action::Fmt => {
+            Command::Fmt => {
                 cmd!("cargo", "fmt").run()?;
                 cmd!("taplo", "format", "**/*.toml").run()?;
                 Ok(())
             }
-            Action::Check => {
+            Command::Check => {
                 cmd!("cargo", "audit").run()?;
                 cmd!("cargo", "check").run()?;
                 cmd!("cargo", "clippy").run()?;
                 Ok(())
             }
-            Action::Test => cmd!(
-                "cargo",
-                "test",
-                "-p",
-                "mozkit",
-                "--target",
-                "wasm32-unknown-unknown"
-            )
-            .run()
-            .map_err(Into::into),
+            Command::Test => {
+                cmd!(
+                    "cargo",
+                    "test",
+                    "-p",
+                    "mozkit",
+                    "--target",
+                    "wasm32-unknown-unknown"
+                )
+                .run()?;
+                Ok(())
+            }
         }
     }
 }
 
 fn main() -> Result<(), AnyError> {
-    Action::parse().run()
+    Command::parse().run()
 }
