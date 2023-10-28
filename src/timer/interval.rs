@@ -24,7 +24,9 @@ impl Interval {
         let closure = Closure::new({
             let state = state.clone();
             move || {
-                let State::Waiting(waker) = state.replace(State::Waked) else { return };
+                let State::Waiting(waker) = state.replace(State::Waked) else {
+                    return;
+                };
                 waker.wake();
             }
         });

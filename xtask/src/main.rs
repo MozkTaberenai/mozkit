@@ -1,7 +1,6 @@
-use clap::Parser;
 use scriptant::*;
 
-#[derive(Parser)]
+#[derive(clap::Parser)]
 enum Command {
     Fmt,
     Check,
@@ -26,8 +25,8 @@ impl Command {
                 cmd!(
                     "cargo",
                     "test",
-                    "-p",
-                    "mozkit",
+                    // "-p",
+                    // "mozkit",
                     "--target",
                     "wasm32-unknown-unknown"
                 )
@@ -39,5 +38,6 @@ impl Command {
 }
 
 fn main() -> Result<(), AnyError> {
+    use clap::Parser;
     Command::parse().run()
 }
