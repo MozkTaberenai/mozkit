@@ -1,6 +1,6 @@
 [package]
 name = "mozkit"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 rust-version = "1.65"
 authors = ["Mozk Taberenai <mozk@me.com>"]
@@ -12,19 +12,17 @@ keywords = ["web", "wasm", "WebAssembly"]
 categories = ["wasm", "web-programming"]
 
 [dependencies]
-wasm-bindgen = "0.2.83"
-js-sys = "0.3.60"
-wasm-bindgen-futures = "0.4.33"
-# futures-core = "0.3.25"
-# futures-util = "0.3.25"
+wasm-bindgen = "0.2.88"
+js-sys = "0.3.65"
+wasm-bindgen-futures = "0.4.38"
 futures-lite = "2.0.0"
-console_error_panic_hook = "0.1.7"
-log = "0.4.17"
+pin-project-lite = "0.2.10"
+log = "0.4.20"
 wasm-logger = "0.2.0"
-slab = "0.4.7"
+slab = "0.4.9"
 
 [dependencies.web-sys]
-version = "0.3.60"
+version = "0.3.65"
 features = [
   "Window",
   "Document",
@@ -33,7 +31,6 @@ features = [
   "Navigator",
   "Storage",
   "EventTarget",
-  "AddEventListenerOptions",
   "Node",
   "NodeList",
   "HtmlCollection",
@@ -44,53 +41,11 @@ features = [
   "HtmlElement",
   "HtmlHeadElement",
   "SvgElement",
-  "CssStyleDeclaration",
-  "Request",
   "RequestInit",
   "Response",
+  "AddEventListenerOptions",
   "Event",
-  "UiEvent",
-  "MouseEvent",
-  "KeyboardEvent",
 ]
-
-[features]
-html-dialog = ["web-sys/HtmlDialogElement"]
-html-input = ["web-sys/HtmlInputElement"]
-html-button = ["web-sys/HtmlButtonElement"]
-html-select = [
-  "web-sys/HtmlSelectElement",
-  "web-sys/HtmlOptionsCollection",
-  "web-sys/HtmlOptionElement",
-  "web-sys/HtmlOptGroupElement",
-]
-html-link = ["web-sys/HtmlLinkElement"]
-html-style = ["web-sys/HtmlStyleElement"]
-html-div = ["web-sys/HtmlDivElement"]
-html-p = ["web-sys/HtmlParagraphElement"]
-# ...ToDo: fill all
-
-svg-svg = ["web-sys/SvgsvgElement"]
-# ...ToDo: fill all
-
-event-animation = ["web-sys/AnimationEvent"]
-event-popstate = ["web-sys/PopStateEvent"]
-# ...ToDo: fill all
-
-media-query-list = ["web-sys/MediaQueryList", "web-sys/MediaQueryListEvent"]
-
-# shadow-dom = [
-#   "web-sys/ShadowRoot",
-#   "web-sys/ShadowRootInit",
-#   "web-sys/ShadowRootMode",
-# ]
-
-# animation = [
-#   "web-sys/Animation",
-#   "web-sys/KeyframeEffect",
-#   "web-sys/KeyframeEffectOptions",
-#   "web-sys/FillMode",
-# ]
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3.33"

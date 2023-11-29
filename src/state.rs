@@ -1,87 +1,69 @@
-use crate::*;
+use crate::Emitter;
+use futures_lite::prelude::*;
 use std::cell::Cell;
 use std::rc::Rc;
 
 #[derive(Clone)]
-pub struct State<T: Copy + Eq> {
-    inner: Rc<Inner<T>>,
+pub struct State<T> {
+    inner: Rc<SharedInner<T>>,
 }
 
-#[derive(Clone)]
-pub struct ReadOnlyState<T: Copy + Eq> {
-    inner: Rc<Inner<T>>,
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct StateChange<T> {
+    pub value: T,
+    pub old_value: T,
 }
 
-struct Inner<T: Copy + Eq> {
+struct SharedInner<T> {
     value: Cell<T>,
-    update_event: Event<(T, T)>,
+    emitter: Emitter<StateChange<T>>,
 }
 
 impl<T: Copy + Eq + Default> Default for State<T> {
+    #[inline]
     fn default() -> Self {
         Self::new(Default::default())
     }
 }
 
 impl<T: Copy + Eq> State<T> {
+    #[inline]
     pub fn new(value: T) -> Self {
         Self::new_with_capacity(value, 1)
     }
 
+    #[inline]
     pub fn new_with_capacity(value: T, capacity: usize) -> Self {
         assert!(capacity > 0, "capacity must not be 0");
 
         let value = Cell::new(value);
-        let update_event = Event::new(capacity);
-        let inner = Rc::new(Inner {
-            value,
-            update_event,
-        });
+        let emitter = Emitter::new(capacity);
+        let inner = Rc::new(SharedInner { value, emitter });
 
         Self { inner }
     }
 
-    pub fn downgrade(self) -> ReadOnlyState<T> {
-        ReadOnlyState { inner: self.inner }
-    }
-
+    #[inline]
     pub fn get(&self) -> T {
         self.inner.value.get()
     }
 
-    #[track_caller]
+    #[inline]
     pub fn set(&self, value: T) {
-        let old = self.inner.value.replace(value);
-        if old != value {
-            self.inner.update_event.emit((value, old));
+        let old_value = self.inner.value.replace(value);
+        if old_value != value {
+            self.inner.emitter.emit(StateChange { value, old_value });
         }
     }
 
-    pub fn watch(&self) -> impl Stream<Item = (T, T)> {
-        self.inner.update_event.listen()
-    }
-
-    pub fn watch_value(&self) -> impl Stream<Item = T> {
-        self.watch().map(|(value, _)| value)
-    }
-}
-
-impl<T: Copy + Eq> ReadOnlyState<T> {
-    pub fn get(&self) -> T {
-        self.inner.value.get()
-    }
-
-    pub fn watch(&self) -> impl Stream<Item = (T, T)> {
-        self.inner.update_event.listen()
-    }
-
-    pub fn watch_value(&self) -> impl Stream<Item = T> {
-        self.watch().map(|(value, _)| value)
+    #[inline]
+    pub fn watch(&self) -> impl Stream<Item = StateChange<T>> {
+        self.inner.emitter.receive()
     }
 }
 
 impl State<bool> {
-    #[track_caller]
+    #[inline]
     pub fn toggle(&self) -> bool {
         self.set(!self.get());
         self.get()
@@ -98,13 +80,17 @@ mod test {
         let state = State::<i32>::new_with_capacity(0, usize::MAX);
         assert_eq!(state.get(), 0);
 
-        let mut change_stream = state.watch();
-        let mut value_stream = state.watch_value();
+        let mut change = state.watch();
 
         state.set(1);
         assert_eq!(state.get(), 1);
-        assert_eq!(change_stream.next().await, Some((1, 0)));
-        assert_eq!(value_stream.next().await, Some(1));
+        assert_eq!(
+            change.next().await,
+            Some(StateChange {
+                value: 1,
+                old_value: 0
+            })
+        );
     }
 
     #[wasm_bindgen_test]
@@ -113,17 +99,26 @@ mod test {
         let state = State::<bool>::new_with_capacity(false, usize::MAX);
         assert_eq!(state.get(), false);
 
-        let mut change_stream = state.watch();
-        let mut value_stream = state.watch_value();
+        let mut change = state.watch();
 
         state.set(true);
         assert_eq!(state.get(), true);
-        assert_eq!(change_stream.next().await, Some((true, false)));
-        assert_eq!(value_stream.next().await, Some(true));
+        assert_eq!(
+            change.next().await,
+            Some(StateChange {
+                value: true,
+                old_value: false
+            })
+        );
 
         state.toggle();
         assert_eq!(state.get(), false);
-        assert_eq!(change_stream.next().await, Some((false, true)));
-        assert_eq!(value_stream.next().await, Some(false));
+        assert_eq!(
+            change.next().await,
+            Some(StateChange {
+                value: false,
+                old_value: true
+            })
+        );
     }
 }

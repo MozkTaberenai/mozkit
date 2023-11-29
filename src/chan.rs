@@ -1,190 +1,138 @@
-use futures_lite::Stream;
+use crate::AsyncQueue;
+use futures_lite::prelude::*;
 use std::cell::RefCell;
-use std::collections::VecDeque;
 use std::pin::Pin;
 use std::rc::{Rc, Weak};
-use std::task::{Context, Poll, Waker};
+use std::task::{Context, Poll};
 
-pub struct Channel<T> {
-    pub tx: ChannelTx<T>,
-    pub rx: ChannelRx<T>,
+#[inline]
+pub fn chan<T>(capacity: usize) -> (Sender<T>, Receiver<T>) {
+    assert!(capacity > 0, "capacity must not be 0");
+
+    let inner = AsyncQueue::new(capacity);
+
+    let rx_inner = Rc::new(RefCell::new(inner));
+    let tx_inner = Rc::downgrade(&rx_inner);
+    let tx = Sender(tx_inner);
+    let rx = Receiver(rx_inner);
+
+    (tx, rx)
 }
 
-pub struct ChannelTx<T>(Weak<RefCell<Inner<T>>>);
-pub struct ChannelRx<T>(Rc<RefCell<Inner<T>>>);
+pub struct Sender<T>(Weak<RefCell<AsyncQueue<T>>>);
+pub struct Receiver<T>(Rc<RefCell<AsyncQueue<T>>>);
 
-struct Inner<T> {
-    queue: VecDeque<T>,
-    waker: Option<Waker>,
-    capacity: usize,
-}
-
-#[derive(Debug)]
-pub enum ChannelSendError<T> {
-    Full(T),
-    Closed(T),
-}
-
-impl<T> std::fmt::Display for ChannelSendError<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            ChannelSendError::Full(..) => write!(f, "no available capacity"),
-            ChannelSendError::Closed(..) => write!(f, "channel closed"),
-        }
-    }
-}
-
-impl<T: std::fmt::Debug> std::error::Error for ChannelSendError<T> {}
-
-pub fn mpsc<T>(capacity: usize) -> (ChannelTx<T>, ChannelRx<T>) {
-    Channel::new(capacity).split_into()
-}
-
-impl<T> Channel<T> {
-    pub fn new(capacity: usize) -> Self {
-        assert!(capacity > 0, "capacity must not be 0");
-
-        let inner = Inner {
-            queue: VecDeque::with_capacity(1),
-            waker: None,
-            capacity,
-        };
-
-        let rx = Rc::new(RefCell::new(inner));
-        let tx = Rc::downgrade(&rx);
-        let tx = ChannelTx(tx);
-        let rx = ChannelRx(rx);
-
-        Self { tx, rx }
-    }
-
-    pub fn split_into(self) -> (ChannelTx<T>, ChannelRx<T>) {
-        (self.tx, self.rx)
-    }
-}
-
-impl<T> Clone for ChannelTx<T> {
+impl<T> Clone for Sender<T> {
+    #[inline]
     fn clone(&self) -> Self {
         Self(self.0.clone())
     }
 }
 
-impl<T> Drop for ChannelTx<T> {
+impl<T> Drop for Sender<T> {
+    #[inline]
     fn drop(&mut self) {
         match self.0.upgrade() {
             None => {}
             Some(inner) => {
-                let Inner { ref mut waker, .. } = *inner.borrow_mut();
-                if let Some(waker) = waker.take() {
-                    waker.wake();
-                }
+                inner.borrow_mut().wake();
             }
         }
     }
 }
 
-impl<T> ChannelTx<T> {
+impl<T> Sender<T> {
+    #[inline]
     pub fn closed(&self) -> bool {
         self.0.upgrade().is_none()
     }
 
-    pub fn send(&self, value: T) -> Result<(), ChannelSendError<T>> {
+    #[inline]
+    pub fn send(&self, value: T) -> Result<(), Error> {
         match self.0.upgrade() {
-            None => Err(ChannelSendError::Closed(value)),
-            Some(inner) => {
-                let Inner {
-                    ref mut queue,
-                    ref mut waker,
-                    capacity,
-                } = *inner.borrow_mut();
-
-                if queue.len() < capacity {
-                    queue.push_back(value);
-
-                    if let Some(waker) = waker.take() {
-                        waker.wake();
-                    }
-
-                    Ok(())
-                } else {
-                    Err(ChannelSendError::Full(value))
-                }
-            }
+            None => Err(Error::Closed),
+            Some(q) => q.borrow_mut().enqueue(value).map_err(|_| Error::Full),
         }
     }
 }
 
-impl<T> Stream for ChannelRx<T> {
+impl<T> Stream for Receiver<T> {
     type Item = T;
 
+    #[inline]
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        let Inner {
-            ref mut queue,
-            ref mut waker,
-            ..
-        } = *self.0.borrow_mut();
-        match queue.pop_front() {
-            Some(item) => Poll::Ready(Some(item)),
-            None => {
-                match Rc::weak_count(&self.0) {
-                    0 => {
-                        // all Tx droped
-                        Poll::Ready(None)
-                    }
-                    _ => {
-                        waker.replace(cx.waker().clone());
-                        Poll::Pending
-                    }
-                }
-            }
+        if let Poll::Ready(item) = self.0.borrow_mut().poll_next(cx) {
+            debug_assert!(item.is_some());
+            Poll::Ready(item)
+        } else if Rc::weak_count(&self.0) == 0 {
+            Poll::Ready(None)
+        } else {
+            Poll::Pending
         }
     }
 }
+
+#[derive(Debug)]
+pub enum Error {
+    Closed,
+    Full,
+}
+
+impl std::fmt::Display for Error {
+    #[inline]
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Error::Closed => write!(f, "channel closed"),
+            Error::Full => write!(f, "no available capacity"),
+        }
+    }
+}
+
+impl std::error::Error for Error {}
 
 #[cfg(test)]
 mod test {
-    // use super::*;
-    use crate::*;
+    use super::*;
     use wasm_bindgen_test::*;
 
     #[wasm_bindgen_test]
     async fn i32() {
-        let mut chan = Channel::<i32>::new(usize::MAX);
+        let (tx, mut rx) = chan::<i32>(usize::MAX);
 
-        assert!(chan.tx.send(0).is_ok());
-        assert_eq!(chan.rx.next().await, Some(0));
+        assert!(tx.send(0).is_ok());
+        assert_eq!(rx.next().await, Some(0));
 
-        assert!(chan.tx.send(1).is_ok());
-        assert!(chan.tx.send(-1).is_ok());
-        assert_eq!(chan.rx.next().await, Some(1));
-        assert_eq!(chan.rx.next().await, Some(-1));
+        assert!(tx.send(1).is_ok());
+        assert!(tx.send(-1).is_ok());
+        assert_eq!(rx.next().await, Some(1));
+        assert_eq!(rx.next().await, Some(-1));
     }
 
     #[wasm_bindgen_test]
     async fn drop_tx() {
-        let mut chan = Channel::<i32>::new(usize::MAX);
-        assert!(chan.tx.send(1).is_ok());
-        drop(chan.tx);
-        assert_eq!(chan.rx.next().await, Some(1));
-        assert_eq!(chan.rx.next().await, None);
+        let (tx, mut rx) = chan::<i32>(usize::MAX);
+        assert!(tx.send(1).is_ok());
+        drop(tx);
+        assert_eq!(rx.next().await, Some(1));
+        assert_eq!(rx.next().await, None);
     }
 
     #[wasm_bindgen_test]
     async fn send_to_closed_tx() {
-        let chan = Channel::<i32>::new(usize::MAX);
-        drop(chan.rx);
-        assert!(matches!(chan.tx.send(1), Err(ChannelSendError::Closed(1))));
+        let (tx, rx) = chan::<i32>(usize::MAX);
+        drop(rx);
+        assert!(tx.send(1).is_err());
     }
 
     #[wasm_bindgen_test]
     async fn capacity() {
-        let mut chan = Channel::<i32>::new(3);
-        assert!(chan.tx.send(1).is_ok());
-        assert!(chan.tx.send(2).is_ok());
-        assert!(chan.tx.send(3).is_ok());
-        assert!(matches!(chan.tx.send(4), Err(ChannelSendError::Full(4))));
-        assert_eq!(chan.rx.next().await, Some(1));
-        assert!(chan.tx.send(5).is_ok());
-        assert!(matches!(chan.tx.send(6), Err(ChannelSendError::Full(6))));
+        let (tx, mut rx) = chan::<i32>(3);
+        assert!(tx.send(1).is_ok());
+        assert!(tx.send(2).is_ok());
+        assert!(tx.send(3).is_ok());
+        assert!(tx.send(4).is_err());
+        assert_eq!(rx.next().await, Some(1));
+        assert!(tx.send(5).is_ok());
+        assert!(tx.send(6).is_err());
     }
 }

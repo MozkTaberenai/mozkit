@@ -1,9 +1,9 @@
-use crate::*;
 use std::cell::Cell;
 use std::future::Future;
 use std::pin::Pin;
 use std::rc::Rc;
 use std::task::{Context, Poll, Waker};
+use wasm_bindgen::prelude::*;
 
 pub struct Timeout {
     id: i32,
@@ -21,6 +21,7 @@ enum State {
 }
 
 impl Timeout {
+    #[inline]
     pub fn new(millisecs: i32) -> Self {
         let state = Rc::new(Cell::new(State::Default));
         let closure = Closure::once({
@@ -33,12 +34,12 @@ impl Timeout {
             }
         });
 
-        let id = window()
+        let id = crate::window()
             .set_timeout_with_callback_and_timeout_and_arguments_0(
                 closure.as_ref().unchecked_ref(),
                 millisecs,
             )
-            .unwrap_js();
+            .unwrap_throw();
 
         Self {
             id,
@@ -49,14 +50,16 @@ impl Timeout {
 }
 
 impl Drop for Timeout {
+    #[inline]
     fn drop(&mut self) {
-        window().clear_timeout_with_handle(self.id);
+        crate::window().clear_timeout_with_handle(self.id);
     }
 }
 
 impl Future for Timeout {
     type Output = ();
 
+    #[inline]
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         match self.state.take() {
             State::Finished => unreachable!(),

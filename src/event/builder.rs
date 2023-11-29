@@ -1,10 +1,9 @@
-use crate::*;
-use std::marker::PhantomData;
-use web_sys::{AddEventListenerOptions, EventTarget};
+use super::*;
+use wasm_bindgen::prelude::*;
 
 pub struct DomEventListenerBuilder<E: DomEvent> {
-    target: EventTarget,
-    _marker: PhantomData<E>,
+    target: web_sys::EventTarget,
+    _marker: std::marker::PhantomData<E>,
     capture: bool,
     passive: Option<bool>,
     prevent_default: bool,
@@ -13,10 +12,11 @@ pub struct DomEventListenerBuilder<E: DomEvent> {
 }
 
 impl<E: DomEvent> DomEventListenerBuilder<E> {
-    pub fn new(target: EventTarget) -> Self {
+    #[inline]
+    pub(crate) fn new(target: web_sys::EventTarget) -> Self {
         Self {
             target,
-            _marker: PhantomData,
+            _marker: std::marker::PhantomData,
             capture: false,
             passive: None,
             prevent_default: false,
@@ -25,34 +25,40 @@ impl<E: DomEvent> DomEventListenerBuilder<E> {
         }
     }
 
+    #[inline]
     pub fn capture(mut self) -> Self {
         self.capture = true;
         self
     }
 
+    #[inline]
     pub fn passive(mut self, value: bool) -> Self {
         self.passive.replace(value);
         self
     }
 
+    #[inline]
     pub fn prevent_default(mut self) -> Self {
         self.prevent_default = true;
         self
     }
 
+    #[inline]
     pub fn stop_propagation(mut self) -> Self {
         self.stop_propagation = true;
         self
     }
 
+    #[inline]
     pub fn stop_immediate_propagation(mut self) -> Self {
         self.stop_immediate_propagation = true;
         self
     }
 
+    #[inline]
     pub fn callback(
         self,
-        mut callback: impl FnMut(E::WebSysEvent) + 'static,
+        mut callback: impl FnMut(web_sys::Event) + 'static,
     ) -> DomEventBinding<E> {
         let Self {
             target,
@@ -65,22 +71,21 @@ impl<E: DomEvent> DomEventListenerBuilder<E> {
         } = self;
 
         let closure = {
-            Closure::<dyn FnMut(E::WebSysEvent)>::new(move |event: E::WebSysEvent| {
-                let event_ref = event.as_ref();
+            Closure::new(move |event: web_sys::Event| {
                 if prevent_default {
-                    event_ref.prevent_default();
+                    event.prevent_default();
                 }
                 if stop_propagation {
-                    event_ref.stop_propagation();
+                    event.stop_propagation();
                 }
                 if stop_immediate_propagation {
-                    event_ref.stop_immediate_propagation();
+                    event.stop_immediate_propagation();
                 }
                 callback(event);
             })
         };
 
-        let mut options = AddEventListenerOptions::new();
+        let mut options = web_sys::AddEventListenerOptions::new();
         options.capture(capture);
         if let Some(passive) = passive {
             options.passive(passive);
@@ -88,40 +93,29 @@ impl<E: DomEvent> DomEventListenerBuilder<E> {
 
         target
             .add_event_listener_with_callback_and_add_event_listener_options(
-                E::NAME,
+                E::TYPE_STR,
                 closure.as_ref().unchecked_ref(),
                 &options,
             )
-            .unwrap_js();
+            .unwrap_throw();
 
         DomEventBinding {
             target,
             closure,
             capture,
+            _marker: std::marker::PhantomData,
         }
     }
 
+    #[inline]
     pub fn into_stream(self) -> DomEventStream<E> {
-        let (tx, rx) = Channel::new(256).split_into();
-
-        let binding = self.callback(move |event| {
+        let (tx, rx) = crate::chan(16);
+        let _binding = self.callback(move |event| {
             if let Err(err) = tx.send(event) {
-                match err {
-                    ChannelSendError::Closed(event) => error!(
-                        "DomEventBinding: AsyncQueue Rx closed: {}",
-                        event.as_ref().to_string()
-                    ),
-                    ChannelSendError::Full(event) => error!(
-                        "DomEventBinding: AsyncQueue Rx no available capacity: {}",
-                        event.as_ref().to_string()
-                    ),
-                }
+                crate::error!("fail to send: {}", err.to_string());
             }
         });
 
-        DomEventStream {
-            binding,
-            stream: rx,
-        }
+        DomEventStream { _binding, rx }
     }
 }
