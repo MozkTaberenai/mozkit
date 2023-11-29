@@ -1,6 +1,12 @@
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 
+#[wasm_bindgen(module = "/src/fetch.js")]
+extern "C" {
+    fn fetch_get(url: &str) -> js_sys::Promise;
+    fn fetch_post(url: &str, body: js_sys::Uint8Array) -> js_sys::Promise;
+}
+
 #[derive(Debug)]
 pub enum Error {
     Client(u16, String),
@@ -52,11 +58,6 @@ impl TryFrom<web_sys::Response> for Response {
 
 impl Response {
     #[inline]
-    pub fn ok(&self) -> bool {
-        self.inner.ok()
-    }
-
-    #[inline]
     pub fn status(&self) -> u16 {
         self.inner.status()
     }
@@ -75,7 +76,7 @@ impl Response {
 
 #[inline]
 pub async fn get(url: &str) -> Result<Response, Error> {
-    let promise = crate::window().fetch_with_str_and_init(url, &web_sys::RequestInit::new());
+    let promise = fetch_get(url);
     let res = JsFuture::from(promise)
         .await?
         .dyn_into::<web_sys::Response>()?;
@@ -94,10 +95,7 @@ pub async fn post(url: &str, body: Option<&[u8]>) -> Result<Response, Error> {
         None => Uint8Array::new_with_length(0),
     };
 
-    let mut request_init = web_sys::RequestInit::new();
-    request_init.method("POST").body(Some(&body));
-
-    let promise = crate::window().fetch_with_str_and_init(url, &request_init);
+    let promise = fetch_post(url, body);
 
     let res = JsFuture::from(promise)
         .await?

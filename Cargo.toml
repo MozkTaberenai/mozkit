@@ -41,7 +41,6 @@ features = [
   "HtmlElement",
   "HtmlHeadElement",
   "SvgElement",
-  "RequestInit",
   "Response",
   "AddEventListenerOptions",
   "Event",
