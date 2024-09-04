@@ -50,8 +50,8 @@ where
     T: AsRef<web_sys::EventTarget>,
 {
     #[inline]
-    pub fn on<E: DomEvent>(self, f: impl FnMut(web_sys::Event) + 'static) -> Self {
-        self.add_listener::<E>(f);
+    pub fn on<E: DomEvent>(self, f: impl FnMut(E::WebSysEvent) + 'static) -> Self {
+        self.listen::<E>(f);
         self
     }
 }
@@ -81,7 +81,6 @@ pub fn text_node(data: &str) -> Node<web_sys::Text> {
 }
 
 mod element;
-pub use element::*;
 
 pub mod html;
 pub mod svg;

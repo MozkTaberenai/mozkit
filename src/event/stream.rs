@@ -6,11 +6,11 @@ use std::task::{Context, Poll};
 
 pub struct DomEventStream<E: DomEvent> {
     pub(crate) _binding: DomEventBinding<E>,
-    pub(crate) rx: chan::Receiver<web_sys::Event>,
+    pub(crate) rx: chan::Receiver<E::WebSysEvent>,
 }
 
 impl<E: DomEvent> Stream for DomEventStream<E> {
-    type Item = web_sys::Event;
+    type Item = E::WebSysEvent;
 
     #[inline]
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {

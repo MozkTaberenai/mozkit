@@ -1,9 +1,10 @@
 use futures_lite::prelude::*;
+use wasm_bindgen_futures::spawn_local;
 
 pub trait FutureSpawnExt: Future<Output = ()> + Sized + 'static {
     #[inline]
     fn spawn(self) {
-        wasm_bindgen_futures::spawn_local(self);
+        spawn_local(self);
     }
 }
 
@@ -14,8 +15,8 @@ where
     E: std::fmt::Display,
 {
     #[inline]
-    fn spawn(self) {
-        wasm_bindgen_futures::spawn_local(async move {
+    fn spawn_log_err(self) {
+        spawn_local(async move {
             if let Err(err) = self.await {
                 crate::error!("{err}");
             }
@@ -36,7 +37,7 @@ pub trait StreamSpawnExt: Stream + Sized + 'static {
     where
         F: FnMut(<Self as Stream>::Item) + 'static,
     {
-        futures_lite::StreamExt::for_each(self, f).spawn();
+        spawn_local(self.for_each(f));
     }
 }
 

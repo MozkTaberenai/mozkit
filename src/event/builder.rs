@@ -58,7 +58,7 @@ impl<E: DomEvent> DomEventListenerBuilder<E> {
     #[inline]
     pub fn callback(
         self,
-        mut callback: impl FnMut(web_sys::Event) + 'static,
+        mut callback: impl FnMut(E::WebSysEvent) + 'static,
     ) -> DomEventBinding<E> {
         let Self {
             target,
@@ -81,14 +81,20 @@ impl<E: DomEvent> DomEventListenerBuilder<E> {
                 if stop_immediate_propagation {
                     event.stop_immediate_propagation();
                 }
-                callback(event);
+                match event.dyn_into::<E::WebSysEvent>() {
+                    Ok(event) => callback(event),
+                    Err(_) => crate::error!(
+                        "fail to JsCast::dyn_into::<{}>()",
+                        std::any::type_name::<E::WebSysEvent>()
+                    ),
+                };
             })
         };
 
-        let mut options = web_sys::AddEventListenerOptions::new();
-        options.capture(capture);
+        let options = web_sys::AddEventListenerOptions::new();
+        options.set_capture(capture);
         if let Some(passive) = passive {
-            options.passive(passive);
+            options.set_passive(passive);
         }
 
         target
