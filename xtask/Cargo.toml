@@ -6,4 +6,4 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.3.11", features = ["derive"] }
-scriptant = { git = "https://github.com/MozkTaberenai/scriptant" }
+scriptant = { git = "https://github.com/MozkTaberenai/scriptant", rev = "e72ffb4" }

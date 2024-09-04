@@ -1,5 +1,8 @@
 use scriptant::*;
 
+type AnyError = Box<dyn std::error::Error>;
+type Result<T, E = AnyError> = std::result::Result<T, E>;
+
 #[derive(clap::Parser)]
 enum Command {
     Fmt,
@@ -8,7 +11,7 @@ enum Command {
 }
 
 impl Command {
-    fn run(self) -> Result<(), AnyError> {
+    fn run(self) -> Result<()> {
         match self {
             Command::Fmt => {
                 cmd!("cargo", "fmt").run()?;
@@ -37,7 +40,7 @@ impl Command {
     }
 }
 
-fn main() -> Result<(), AnyError> {
+fn main() -> Result<()> {
     use clap::Parser;
     Command::parse().run()
 }
