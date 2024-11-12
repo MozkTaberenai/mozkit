@@ -1,6 +1,6 @@
 #[inline]
 pub fn init(max_level: log::Level) {
-    fn panick_hook(info: &std::panic::PanicInfo) {
+    fn panick_hook(info: &std::panic::PanicHookInfo) {
         log::error!("{info}");
     }
     std::panic::set_hook(Box::new(panick_hook));
