@@ -20,7 +20,7 @@ impl Storage {
     }
 
     #[inline]
-    pub fn keys(&self) -> impl Iterator<Item = String> {
+    pub fn keys(&self) -> impl Iterator<Item = String> + use<> {
         let storage = self.0.clone();
         let len = storage.length().unwrap_throw();
         (0..len).filter_map(move |idx| storage.key(idx).unwrap_throw())

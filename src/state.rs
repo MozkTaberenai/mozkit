@@ -57,7 +57,7 @@ impl<T: Copy + Eq> State<T> {
     }
 
     #[inline]
-    pub fn watch(&self) -> impl Stream<Item = StateChange<T>> {
+    pub fn watch(&self) -> impl Stream<Item = StateChange<T>> + use<T> {
         self.inner.emitter.receive()
     }
 }
@@ -76,6 +76,7 @@ mod test {
     use wasm_bindgen_test::*;
 
     #[wasm_bindgen_test]
+    #[allow(dead_code)]
     async fn i32() {
         let state = State::<i32>::new_with_capacity(0, usize::MAX);
         assert_eq!(state.get(), 0);
@@ -94,15 +95,15 @@ mod test {
     }
 
     #[wasm_bindgen_test]
-    #[allow(clippy::bool_assert_comparison)]
+    #[allow(dead_code)]
     async fn bool() {
         let state = State::<bool>::new_with_capacity(false, usize::MAX);
-        assert_eq!(state.get(), false);
+        assert!(!state.get());
 
         let mut change = state.watch();
 
         state.set(true);
-        assert_eq!(state.get(), true);
+        assert!(state.get());
         assert_eq!(
             change.next().await,
             Some(StateChange {
@@ -112,7 +113,7 @@ mod test {
         );
 
         state.toggle();
-        assert_eq!(state.get(), false);
+        assert!(!state.get());
         assert_eq!(
             change.next().await,
             Some(StateChange {

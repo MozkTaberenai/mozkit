@@ -1,8 +1,7 @@
 [package]
 name = "mozkit"
 version = "0.2.0"
-edition = "2021"
-rust-version = "1.65"
+edition = "2024"
 authors = ["Mozk Taberenai <mozk@me.com>"]
 license = "MIT"
 description = ""
@@ -24,26 +23,26 @@ slab = "0.4.9"
 [dependencies.web-sys]
 version = "0.3.65"
 features = [
-  "Window",
-  "Document",
-  "Location",
-  "History",
-  "Navigator",
-  "Storage",
-  "EventTarget",
-  "Node",
-  "NodeList",
-  "HtmlCollection",
-  "DocumentFragment",
-  "Text",
-  "Element",
-  "DomTokenList",
-  "HtmlElement",
-  "HtmlHeadElement",
-  "SvgElement",
-  "Response",
-  "AddEventListenerOptions",
-  "Event",
+    "Window",
+    "Document",
+    "Location",
+    "History",
+    "Navigator",
+    "Storage",
+    "EventTarget",
+    "Node",
+    "NodeList",
+    "HtmlCollection",
+    "DocumentFragment",
+    "Text",
+    "Element",
+    "DomTokenList",
+    "HtmlElement",
+    "HtmlHeadElement",
+    "SvgElement",
+    "Response",
+    "AddEventListenerOptions",
+    "Event",
 ]
 
 [dev-dependencies]
@@ -51,7 +50,7 @@ wasm-bindgen-test = "0.3.33"
 
 [workspace]
 members = [
-  # "examples/*",
-  "xtask",
+    # "examples/*",
+    "xtask",
 ]
 resolver = "2"

@@ -39,7 +39,7 @@ impl<T: Clone> Emitter<T> {
     }
 
     #[inline]
-    pub fn receive(&self) -> impl Stream<Item = T> {
+    pub fn receive(&self) -> impl Stream<Item = T> + use<T> {
         let (tx, rx) = chan(self.capacity);
         let slab_key = self.tx_slab.borrow_mut().insert(tx);
         let tx_slab = Rc::downgrade(&self.tx_slab);
@@ -81,6 +81,7 @@ mod test {
     use wasm_bindgen_test::*;
 
     #[wasm_bindgen_test]
+    #[allow(dead_code)]
     async fn test() {
         let emitter = Emitter::new(usize::MAX);
         let mut receiver = emitter.receive();

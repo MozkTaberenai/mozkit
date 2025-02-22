@@ -70,6 +70,7 @@ mod test {
     use wasm_bindgen_test::*;
 
     #[wasm_bindgen_test]
+    #[allow(dead_code)]
     async fn i32() {
         let mut q = AsyncQueue::new(usize::MAX);
 
@@ -85,6 +86,7 @@ mod test {
     }
 
     #[wasm_bindgen_test]
+    #[allow(dead_code)]
     async fn capacity() {
         let mut q = AsyncQueue::new(3);
         assert!(q.enqueue(1).is_ok());

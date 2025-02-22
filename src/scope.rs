@@ -144,6 +144,7 @@ mod test {
     use wasm_bindgen_test::*;
 
     #[wasm_bindgen_test]
+    #[allow(dead_code)]
     async fn test() {
         let ready = std::future::ready(1);
         let pending = std::future::pending::<i32>();

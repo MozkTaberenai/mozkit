@@ -61,13 +61,18 @@ impl<T> Stream for Receiver<T> {
 
     #[inline]
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        if let Poll::Ready(item) = self.0.borrow_mut().poll_next(cx) {
-            debug_assert!(item.is_some());
-            Poll::Ready(item)
-        } else if Rc::weak_count(&self.0) == 0 {
-            Poll::Ready(None)
-        } else {
-            Poll::Pending
+        match self.0.borrow_mut().poll_next(cx) {
+            Poll::Ready(item) => {
+                debug_assert!(item.is_some());
+                Poll::Ready(item)
+            }
+            _ => {
+                if Rc::weak_count(&self.0) == 0 {
+                    Poll::Ready(None)
+                } else {
+                    Poll::Pending
+                }
+            }
         }
     }
 }
@@ -96,6 +101,7 @@ mod test {
     use wasm_bindgen_test::*;
 
     #[wasm_bindgen_test]
+    #[allow(dead_code)]
     async fn i32() {
         let (tx, mut rx) = chan::<i32>(usize::MAX);
 
@@ -109,6 +115,7 @@ mod test {
     }
 
     #[wasm_bindgen_test]
+    #[allow(dead_code)]
     async fn drop_tx() {
         let (tx, mut rx) = chan::<i32>(usize::MAX);
         assert!(tx.send(1).is_ok());
@@ -118,6 +125,7 @@ mod test {
     }
 
     #[wasm_bindgen_test]
+    #[allow(dead_code)]
     async fn send_to_closed_tx() {
         let (tx, rx) = chan::<i32>(usize::MAX);
         drop(rx);
@@ -125,6 +133,7 @@ mod test {
     }
 
     #[wasm_bindgen_test]
+    #[allow(dead_code)]
     async fn capacity() {
         let (tx, mut rx) = chan::<i32>(3);
         assert!(tx.send(1).is_ok());
