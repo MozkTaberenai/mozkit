@@ -1,6 +1,5 @@
 pub use futures_lite::prelude::*;
 pub use log::{self, debug, error, info, trace, warn};
-pub use std::future::Future;
 pub use wasm_bindgen::prelude::*;
 pub use wasm_bindgen_futures::JsFuture;
 pub use web_sys::{HtmlElement, SvgElement, Text};

@@ -1,7 +1,6 @@
 use futures_lite::prelude::*;
 use slab::Slab;
 use std::cell::RefCell;
-use std::future::Future;
 use std::pin::Pin;
 use std::rc::{Rc, Weak};
 use std::task::{Context, Poll, Waker};
